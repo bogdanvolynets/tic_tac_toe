@@ -1,3 +1,5 @@
+import './styles.scss';
+
 const Player = (sign) => {
     return { sign };
 }
