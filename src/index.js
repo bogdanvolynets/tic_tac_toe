@@ -13,19 +13,19 @@ const gameBoard = (() => {
     const getField = (index) => board[index];
 
     const reset = () => {
-        for(let i=0; i<board.length; i++) {
+        for(let i = 0; i < board.length; i++) {
             board[i] = '';
         }
     }
 
-    return {board, setField, getField, reset};
+    return { setField, getField, reset };
 })();
 
 const displayController = (() => {
     const cells = [...document.querySelectorAll('#gameBoard div')];
     const playersMove = document.querySelector('#playersMove');
     const restartBtn = document.querySelector('#restart');
-
+    
     cells.forEach(e => e.addEventListener('click', () => {
         if(e.textContent === '' && gameController.gameOver() === false) {
             e.textContent = gameController.getSign();
@@ -52,16 +52,18 @@ const displayController = (() => {
         }
     }
 
-    restartBtn.addEventListener('click', () => {
+    const restartGame = () => {
         gameBoard.reset();
         gameController.setNewRound();
         playersMove.textContent = `Player X's Turn`;
         for (let i=0; i<cells.length; i++) {
             cells[i].textContent = '';
         }
-    });
+    }
 
-    return { setPlayersMoveText };
+    restartBtn.addEventListener('click', restartGame);
+
+    return { setPlayersMoveText, restartGame };
 })();
 
 const gameController = (() => {
@@ -119,4 +121,22 @@ const gameController = (() => {
     }
 
     return { getSign, getWinnerSign, setNewRound, gameOver };
+})();
+
+const gameMode = (() => {
+    const humanMode = document.querySelector('#humanMode');
+    const aiMode = document.querySelector('#AIMode');
+    const getGameMode = (mode = 'human') => mode;
+
+    humanMode.addEventListener('click', () => {
+        displayController.restartGame();
+        getGameMode('human');
+    });
+
+    aiMode.addEventListener('click', () => {
+        displayController.restartGame();
+        getGameMode('ai');
+    });
+    
+    return { getGameMode };
 })();

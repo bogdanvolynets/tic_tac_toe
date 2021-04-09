@@ -99,7 +99,6 @@ var gameBoard = function () {
   };
 
   return {
-    board: board,
     setField: setField,
     getField: getField,
     reset: reset
@@ -137,7 +136,7 @@ var displayController = function () {
     }
   };
 
-  restartBtn.addEventListener('click', function () {
+  var restartGame = function restartGame() {
     gameBoard.reset();
     gameController.setNewRound();
     playersMove.textContent = "Player X's Turn";
@@ -145,9 +144,12 @@ var displayController = function () {
     for (var i = 0; i < cells.length; i++) {
       cells[i].textContent = '';
     }
-  });
+  };
+
+  restartBtn.addEventListener('click', restartGame);
   return {
-    setPlayersMoveText: setPlayersMoveText
+    setPlayersMoveText: setPlayersMoveText,
+    restartGame: restartGame
   };
 }();
 
@@ -204,6 +206,28 @@ var gameController = function () {
     getWinnerSign: getWinnerSign,
     setNewRound: setNewRound,
     gameOver: gameOver
+  };
+}();
+
+var gameMode = function () {
+  var humanMode = document.querySelector('#humanMode');
+  var aiMode = document.querySelector('#AIMode');
+
+  var getGameMode = function getGameMode() {
+    var mode = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'human';
+    return mode;
+  };
+
+  humanMode.addEventListener('click', function () {
+    displayController.restartGame();
+    getGameMode('human');
+  });
+  aiMode.addEventListener('click', function () {
+    displayController.restartGame();
+    getGameMode('ai');
+  });
+  return {
+    getGameMode: getGameMode
   };
 }();
 }();
