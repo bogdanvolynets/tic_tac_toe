@@ -24,26 +24,51 @@ h1 {
   text-shadow: 2px 1px 5px #fff;
 }
 
-button {
+.players-turn {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.btn {
   display: block;
+  color: #000;
+  font-family: "Indie Flower", cursive;
+  font-weight: 700;
+  outline: 0;
+  cursor: pointer;
+}
+.btn__player {
+  font-size: 2rem;
+  text-shadow: 2px 1px 5px #fff;
+  background: transparent;
+  border: none;
+}
+.btn__player:hover {
+  text-decoration: underline;
+}
+.btn__restart {
   font-size: 2rem;
   padding: 12px 30px 8px;
   margin: 30px auto;
   border: 2px solid #000;
   border-radius: 10px;
-  color: #000;
-  font-family: "Indie Flower", cursive;
-  font-weight: 700;
   background: #fff;
-  outline: 0;
-  cursor: pointer;
 }
 
-span {
-  display: block;
+.gamemode {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  max-width: 480px;
+  margin: 20px auto 40px;
+}
+.gamemode__text {
   font-size: 2.5rem;
   text-align: center;
-  margin-top: 20px;
 }
 
 .game-board {
