@@ -73,7 +73,7 @@ function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToAr
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-
+ // Create Player object(X, O) using factory function
 
 var Player = function Player(sign) {
   return {
@@ -82,15 +82,27 @@ var Player = function Player(sign) {
 };
 
 var gameBoard = function () {
-  var board = ['', '', '', '', '', '', '', '', ''];
+  // Create array that immitates tic tac toe board
+  var board = ['', '', '', '', '', '', '', '', '']; // Assign elements to the board array
 
   var setField = function setField(index, sign) {
     board[index] = sign;
-  };
+  }; // Get value from the board array
+
 
   var getField = function getField(index) {
     return board[index];
-  };
+  }; // Create random number from 0 to 8,
+  // return array item(board cell) with index of this number, 
+  // check if its empty, if not repeat function
+  // if empty - return this cell
+
+
+  var getAiField = function getAiField() {
+    var randomNumber = Math.floor(Math.random() * 9);
+    return board[randomNumber] !== '' ? getAiField() : randomNumber;
+  }; // replace board array items with empty strings (clear board)
+
 
   var reset = function reset() {
     for (var i = 0; i < board.length; i++) {
@@ -101,6 +113,7 @@ var gameBoard = function () {
   return {
     setField: setField,
     getField: getField,
+    getAiField: getAiField,
     reset: reset
   };
 }();
@@ -116,6 +129,7 @@ var displayController = function () {
         e.textContent = gameController.getSign();
         gameBoard.setField(e.getAttribute('data-position'), e.textContent);
         checkForGameOver();
+        setTimeout(determineMove(), 300);
       } else if (gameController.gameOver() === false) {
         alert('This cell is already taken, please select another one');
       } else {
@@ -123,6 +137,16 @@ var displayController = function () {
       }
     });
   });
+
+  var determineMove = function determineMove() {
+    if (gameMode.getGameMode() === 'ai' && gameController.oddRound() === false) {
+      var aiSign = gameController.getSign();
+      var aiField = gameBoard.getAiField();
+      cells[aiField].textContent = aiSign;
+      gameBoard.setField(aiField, aiSign);
+      checkForGameOver();
+    }
+  };
 
   var setPlayersMoveText = function setPlayersMoveText(player) {
     playersMove.textContent = "Player ".concat(player, "'s Turn");
@@ -176,6 +200,11 @@ var gameController = function () {
 
   var getWinnerSign = function getWinnerSign() {
     return winnerSign;
+  }; // chick if round number is odd
+
+
+  var oddRound = function oddRound() {
+    return round % 2 === 0 ? false : true;
   };
 
   var setNewRound = function setNewRound() {
@@ -204,6 +233,7 @@ var gameController = function () {
   return {
     getSign: getSign,
     getWinnerSign: getWinnerSign,
+    oddRound: oddRound,
     setNewRound: setNewRound,
     gameOver: gameOver
   };
@@ -212,19 +242,19 @@ var gameController = function () {
 var gameMode = function () {
   var humanMode = document.querySelector('#humanMode');
   var aiMode = document.querySelector('#AIMode');
+  var gameMode = 'human';
 
   var getGameMode = function getGameMode() {
-    var mode = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'human';
-    return mode;
+    return gameMode;
   };
 
   humanMode.addEventListener('click', function () {
     displayController.restartGame();
-    getGameMode('human');
+    gameMode = 'human';
   });
   aiMode.addEventListener('click', function () {
     displayController.restartGame();
-    getGameMode('ai');
+    gameMode = 'ai';
   });
   return {
     getGameMode: getGameMode

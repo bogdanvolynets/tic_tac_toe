@@ -1,24 +1,43 @@
 import './styles.scss';
 
+// Create Player object(X, O) using factory function
 const Player = (sign) => {
     return { sign };
 }
 
+
 const gameBoard = (() => {
+    // Create array that immitates tic tac toe board
     const board = ['','','','','','','','',''];
+
+    // Assign elements to the board array
     const setField = (index, sign) => {
         board[index] = sign;
     }
 
+    // Get value from the board array
     const getField = (index) => board[index];
 
+    // Create random number from 0 to 8,
+    // return array item(board cell) with index of this number, 
+    // check if its empty, if not repeat function
+    // if empty - return this cell
+    const getAiField = () => {
+        const randomNumber = Math.floor(
+            Math.random() * 9
+        );
+
+        return board[randomNumber] !== '' ? getAiField() : randomNumber;
+    }
+
+    // replace board array items with empty strings (clear board)
     const reset = () => {
         for(let i = 0; i < board.length; i++) {
             board[i] = '';
         }
     }
 
-    return { setField, getField, reset };
+    return { setField, getField, getAiField, reset };
 })();
 
 const displayController = (() => {
@@ -27,10 +46,11 @@ const displayController = (() => {
     const restartBtn = document.querySelector('#restart');
     
     cells.forEach(e => e.addEventListener('click', () => {
-        if(e.textContent === '' && gameController.gameOver() === false) {
+        if (e.textContent === '' && gameController.gameOver() === false) {
             e.textContent = gameController.getSign();
             gameBoard.setField(e.getAttribute('data-position'), e.textContent);
             checkForGameOver();
+            determineMove();
         }
         else if (gameController.gameOver() === false) { 
             alert('This cell is already taken, please select another one'); 
@@ -39,6 +59,17 @@ const displayController = (() => {
             alert(`Game is Over, please restart`); 
         }
     }));
+
+    const determineMove = () => {
+        if (gameMode.getGameMode() === 'ai' && gameController.oddRound() === false) { 
+            const aiSign = gameController.getSign(); 
+            const aiField = gameBoard.getAiField();
+
+            cells[aiField].textContent = aiSign;
+            gameBoard.setField(aiField, aiSign);
+            checkForGameOver();
+        }
+    }
 
     const setPlayersMoveText = player => {
         playersMove.textContent = `Player ${player}'s Turn`;
@@ -89,6 +120,9 @@ const gameController = (() => {
 
     const getWinnerSign = () => winnerSign;
 
+    // chick if round number is odd
+    const oddRound = () => round % 2 === 0 ? false : true;
+
     const setNewRound = () => round = 1;
 
     const checkWin = (cell1, cell2, cell3) => {
@@ -120,22 +154,23 @@ const gameController = (() => {
         return isWin;
     }
 
-    return { getSign, getWinnerSign, setNewRound, gameOver };
+    return { getSign, getWinnerSign, oddRound, setNewRound, gameOver };
 })();
 
 const gameMode = (() => {
     const humanMode = document.querySelector('#humanMode');
     const aiMode = document.querySelector('#AIMode');
-    const getGameMode = (mode = 'human') => mode;
+    let gameMode = 'human';
+    const getGameMode = () => gameMode;
 
     humanMode.addEventListener('click', () => {
         displayController.restartGame();
-        getGameMode('human');
+        gameMode = 'human';
     });
 
     aiMode.addEventListener('click', () => {
         displayController.restartGame();
-        getGameMode('ai');
+        gameMode = 'ai';
     });
     
     return { getGameMode };
