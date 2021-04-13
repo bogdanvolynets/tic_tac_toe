@@ -122,31 +122,41 @@ var displayController = function () {
   var cells = _toConsumableArray(document.querySelectorAll('#gameBoard div'));
 
   var playersMove = document.querySelector('#playersMove');
-  var restartBtn = document.querySelector('#restart');
+  var restartBtn = document.querySelector('#restart'); // on click check if field is empty and if game is not over
+
   cells.forEach(function (e) {
     return e.addEventListener('click', function () {
       if (e.textContent === '' && gameController.gameOver() === false) {
-        e.textContent = gameController.getSign();
-        gameBoard.setField(e.getAttribute('data-position'), e.textContent);
-        checkForGameOver();
-        setTimeout(determineMove(), 300);
-      } else if (gameController.gameOver() === false) {
-        alert('This cell is already taken, please select another one');
-      } else {
-        alert("Game is Over, please restart");
-      }
+        e.textContent = gameController.getSign(); // add placed sign to the board array
+
+        gameBoard.setField(e.getAttribute('data-position'), e.textContent); // after players move check if game is not over
+
+        checkForGameOver(); // after check for game mode, if it's AI mode - AI will place its sign
+
+        determineMove();
+      } // set alert if game is still going but selected field was already taken
+      else if (gameController.gameOver() === false) {
+          alert('This cell is already taken, please select another one');
+        } // if game is over and user tries to click on field - set alert to restart the game
+        else {
+            alert("Game is Over, please restart");
+          }
     });
-  });
+  }); // check the gamemode, if it's AI mode - AI makes its move, 
 
   var determineMove = function determineMove() {
     if (gameMode.getGameMode() === 'ai' && gameController.oddRound() === false) {
+      // set AI's sign and get empty field that will be choosen
       var aiSign = gameController.getSign();
-      var aiField = gameBoard.getAiField();
+      var aiField = gameBoard.getAiField(); // change DOM content and place new value into board array
+
       cells[aiField].textContent = aiSign;
-      gameBoard.setField(aiField, aiSign);
+      gameBoard.setField(aiField, aiSign); // check for gameover after AI finishes move
+
       checkForGameOver();
     }
-  };
+  }; // set text that tells which player moves right now
+
 
   var setPlayersMoveText = function setPlayersMoveText(player) {
     playersMove.textContent = "Player ".concat(player, "'s Turn");
@@ -209,7 +219,9 @@ var gameController = function () {
 
   var setNewRound = function setNewRound() {
     return round = 1;
-  };
+  }; // we take 3 fields, in other words - 3 board array indexes
+  // if they are not empty and each field has same value then game was won
+
 
   var checkWin = function checkWin(cell1, cell2, cell3) {
     if (gameBoard.getField(cell1) !== '' && gameBoard.getField(cell2) !== '' && gameBoard.getField(cell3) !== '' && gameBoard.getField(cell1) === gameBoard.getField(cell2) && gameBoard.getField(cell1) === gameBoard.getField(cell3)) {
@@ -218,7 +230,10 @@ var gameController = function () {
     } else {
       return false;
     }
-  };
+  }; // we call checkWin function and pass field indexes into it
+  // if checkWin returns true - player won
+  // if it was final round and nobody won than it's a tie
+
 
   var gameOver = function gameOver() {
     isWin = checkWin(0, 1, 2) || checkWin(3, 4, 5) || checkWin(6, 7, 8) || checkWin(0, 3, 6) || checkWin(1, 4, 7) || checkWin(2, 5, 8) || checkWin(0, 4, 8) || checkWin(6, 4, 2);
@@ -246,7 +261,8 @@ var gameMode = function () {
 
   var getGameMode = function getGameMode() {
     return gameMode;
-  };
+  }; // on button click set gamemode to the selected one
+
 
   humanMode.addEventListener('click', function () {
     displayController.restartGame();
