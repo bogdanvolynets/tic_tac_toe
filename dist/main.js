@@ -83,7 +83,14 @@ var Player = function Player(sign) {
 
 var gameBoard = function () {
   // Create array that immitates tic tac toe board
-  var board = ['', '', '', '', '', '', '', '', '']; // Assign elements to the board array
+  var board = [0, 1, 2, 3, 4, 5, 6, 7, 8]; // Create new board with empty fields
+
+  var findEmptyFields = function findEmptyFields(board) {
+    return board.filter(function (e) {
+      return e !== 'O' && e !== 'X';
+    });
+  }; // Assign elements to the board array
+
 
   var setField = function setField(index, sign) {
     board[index] = sign;
@@ -92,27 +99,28 @@ var gameBoard = function () {
 
   var getField = function getField(index) {
     return board[index];
-  }; // Create random number from 0 to 8,
-  // return array item(board cell) with index of this number, 
-  // check if its empty, if not repeat function
-  // if empty - return this cell
+  }; // Select random empty field and return its value
+  // returned value is field index in original board
 
 
   var getAiField = function getAiField() {
-    var randomNumber = Math.floor(Math.random() * 9);
-    return board[randomNumber] !== '' ? getAiField() : randomNumber;
-  }; // replace board array items with empty strings (clear board)
+    var aiBoard = findEmptyFields(board);
+    var randomNumber = Math.floor(Math.random() * aiBoard.length);
+    return aiBoard[randomNumber]; //return board[randomNumber] !== '' ? getAiField() : randomNumber;
+  }; // clear board array
 
 
   var reset = function reset() {
     for (var i = 0; i < board.length; i++) {
-      board[i] = '';
+      board[i] = i;
     }
   };
 
   return {
+    board: board,
     setField: setField,
     getField: getField,
+    findEmptyFields: findEmptyFields,
     getAiField: getAiField,
     reset: reset
   };
@@ -145,7 +153,7 @@ var displayController = function () {
   }); // check the gamemode, if it's AI mode - AI makes its move, 
 
   var determineMove = function determineMove() {
-    if (gameMode.getGameMode() === 'ai' && gameController.oddRound() === false) {
+    if (gameController.gameOver() === false && gameMode.getGameMode() === 'ai' && gameController.oddRound() === false) {
       // set AI's sign and get empty field that will be choosen
       var aiSign = gameController.getSign();
       var aiField = gameBoard.getAiField(); // change DOM content and place new value into board array
@@ -154,7 +162,14 @@ var displayController = function () {
       gameBoard.setField(aiField, aiSign); // check for gameover after AI finishes move
 
       checkForGameOver();
-    }
+    } // minimax mode
+    else if (gameController.gameOver() === false && gameMode.getGameMode() === 'minimax' && gameController.oddRound() === false) {
+        var minimaxSign = gameController.getSign();
+        var minimaxField = minimax(gameBoard.board, minimaxSign);
+        cells[minimaxField.index].textContent = minimaxSign;
+        gameBoard.setField(minimaxField.index, minimaxSign);
+        checkForGameOver();
+      }
   }; // set text that tells which player moves right now
 
 
@@ -219,12 +234,11 @@ var gameController = function () {
 
   var setNewRound = function setNewRound() {
     return round = 1;
-  }; // we take 3 fields, in other words - 3 board array indexes
-  // if they are not empty and each field has same value then game was won
+  }; // we take 3 board fields if each field has same value then game was won
 
 
   var checkWin = function checkWin(cell1, cell2, cell3) {
-    if (gameBoard.getField(cell1) !== '' && gameBoard.getField(cell2) !== '' && gameBoard.getField(cell3) !== '' && gameBoard.getField(cell1) === gameBoard.getField(cell2) && gameBoard.getField(cell1) === gameBoard.getField(cell3)) {
+    if (gameBoard.getField(cell1) === gameBoard.getField(cell2) && gameBoard.getField(cell1) === gameBoard.getField(cell3)) {
       winnerSign = gameBoard.getField(cell1);
       return true;
     } else {
@@ -255,27 +269,97 @@ var gameController = function () {
 }();
 
 var gameMode = function () {
-  var humanMode = document.querySelector('#humanMode');
-  var aiMode = document.querySelector('#AIMode');
-  var gameMode = 'human';
+  var gameModes = _toConsumableArray(document.querySelectorAll('#gameMode'));
+
+  var mode = 'human'; // on button click set gamemode to the selected one
+
+  gameModes.forEach(function (e) {
+    return e.addEventListener('click', function () {
+      displayController.restartGame();
+      mode = e.getAttribute('data-mode');
+    });
+  });
 
   var getGameMode = function getGameMode() {
-    return gameMode;
-  }; // on button click set gamemode to the selected one
+    return mode;
+  };
 
-
-  humanMode.addEventListener('click', function () {
-    displayController.restartGame();
-    gameMode = 'human';
-  });
-  aiMode.addEventListener('click', function () {
-    displayController.restartGame();
-    gameMode = 'ai';
-  });
   return {
     getGameMode: getGameMode
   };
 }();
+
+var minimax = function minimax(newBoard, player) {
+  // available spots
+  var availSpots = gameBoard.findEmptyFields(newBoard); // checks for the terminal states such as win, lose, and tie and returning a value accordingly
+
+  if (gameController.gameOver() === true && gameController.getWinnerSign() === 'X') {
+    return {
+      score: -10
+    };
+  } else if (gameController.gameOver() === true && gameController.getWinnerSign() === 'O') {
+    return {
+      score: 10
+    };
+  } else if (availSpots.length === 0) {
+    return {
+      score: 0
+    };
+  } // an array to collect all the objects
+
+
+  var moves = []; // loop through available spots
+
+  for (var i = 0; i < availSpots.length; i++) {
+    // create an object for each and store the index of that spot that was stored as a number in the object's index key
+    var move = {};
+    move.index = newBoard[availSpots[i]]; // set the empty spot to the current player
+
+    newBoard[availSpots[i]] = player; // if collect the score resulted from calling minimax on the opponent of the current player
+
+    if (player === 'O') {
+      var result = minimax(newBoard, 'X');
+      move.score = result.score;
+    } else {
+      var _result = minimax(newBoard, 'O');
+
+      move.score = _result.score;
+    } // reset the spot to empty
+
+
+    newBoard[availSpots[i]] = move.index; // push the object to the array
+
+    moves.push(move);
+  } // if it is the computer's turn loop over the moves and choose the move with the highest score
+
+
+  var bestMove;
+
+  if (player === 'O') {
+    var bestScore = -10000;
+
+    for (var _i = 0; _i < moves.length; _i++) {
+      if (moves[_i].score > bestScore) {
+        bestScore = moves[_i].score;
+        bestMove = _i;
+      }
+    }
+  } else {
+    // else loop over the moves and choose the move with the lowest score
+    var _bestScore = 10000;
+
+    for (var _i2 = 0; _i2 < moves.length; _i2++) {
+      if (moves[_i2].score < _bestScore) {
+        _bestScore = moves[_i2].score;
+        bestMove = _i2;
+      }
+    }
+  } // return the chosen move (object) from the array to the higher depth
+
+
+  console.log(moves[bestMove]);
+  return moves[bestMove];
+};
 }();
 /******/ })()
 ;

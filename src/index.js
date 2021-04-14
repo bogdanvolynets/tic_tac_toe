@@ -5,10 +5,12 @@ const Player = (sign) => {
     return { sign };
 }
 
-
 const gameBoard = (() => {
     // Create array that immitates tic tac toe board
-    const board = ['','','','','','','','',''];
+    const board = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+
+    // Create new board with empty fields
+    const findEmptyFields = (board) => board.filter(e => e !== 'O' && e !== 'X');
 
     // Assign elements to the board array
     const setField = (index, sign) => {
@@ -18,26 +20,27 @@ const gameBoard = (() => {
     // Get value from the board array
     const getField = (index) => board[index];
 
-    // Create random number from 0 to 8,
-    // return array item(board cell) with index of this number, 
-    // check if its empty, if not repeat function
-    // if empty - return this cell
+    // Select random empty field and return its value
+    // returned value is field index in original board
     const getAiField = () => {
+        const aiBoard = findEmptyFields(board);
+        
         const randomNumber = Math.floor(
-            Math.random() * 9
+            Math.random() * aiBoard.length
         );
 
-        return board[randomNumber] !== '' ? getAiField() : randomNumber;
+        return aiBoard[randomNumber];
+        //return board[randomNumber] !== '' ? getAiField() : randomNumber;
     }
 
-    // replace board array items with empty strings (clear board)
+    // clear board array
     const reset = () => {
         for(let i = 0; i < board.length; i++) {
-            board[i] = '';
+            board[i] = i;
         }
     }
 
-    return { setField, getField, getAiField, reset };
+    return { board, setField, getField, findEmptyFields, getAiField, reset };
 })();
 
 const displayController = (() => {
@@ -84,6 +87,17 @@ const displayController = (() => {
             gameBoard.setField(aiField, aiSign);
 
             // check for gameover after AI finishes move
+            checkForGameOver();
+        }
+
+        // minimax mode
+        else if (gameController.gameOver() === false && gameMode.getGameMode() === 'minimax' && gameController.oddRound() === false) { 
+            const minimaxSign = gameController.getSign(); 
+            const minimaxField = minimax(gameBoard.board, minimaxSign);
+
+            cells[minimaxField.index].textContent = minimaxSign;
+            gameBoard.setField(minimaxField.index, minimaxSign);
+
             checkForGameOver();
         }
     }
@@ -143,13 +157,9 @@ const gameController = (() => {
 
     const setNewRound = () => round = 1;
 
-    // we take 3 fields, in other words - 3 board array indexes
-    // if they are not empty and each field has same value then game was won
+    // we take 3 board fields if each field has same value then game was won
     const checkWin = (cell1, cell2, cell3) => {
-        if (gameBoard.getField(cell1) !== '' &&
-            gameBoard.getField(cell2) !== '' &&
-            gameBoard.getField(cell3) !== '' &&
-            gameBoard.getField(cell1) === gameBoard.getField(cell2) && 
+        if (gameBoard.getField(cell1) === gameBoard.getField(cell2) && 
             gameBoard.getField(cell1) === gameBoard.getField(cell3)) {
             winnerSign = gameBoard.getField(cell1);
             return true;
@@ -181,21 +191,88 @@ const gameController = (() => {
 })();
 
 const gameMode = (() => {
-    const humanMode = document.querySelector('#humanMode');
-    const aiMode = document.querySelector('#AIMode');
-    let gameMode = 'human';
-    const getGameMode = () => gameMode;
-
+    const gameModes = [...document.querySelectorAll('#gameMode')];
+    let mode = 'human';
+    
     // on button click set gamemode to the selected one
-    humanMode.addEventListener('click', () => {
+    gameModes.forEach(e => e.addEventListener('click', () => {
         displayController.restartGame();
-        gameMode = 'human';
-    });
+        mode = e.getAttribute('data-mode');
+    }));
 
-    aiMode.addEventListener('click', () => {
-        displayController.restartGame();
-        gameMode = 'ai';
-    });
+    const getGameMode = () => mode;
     
     return { getGameMode };
 })();
+
+const minimax = (newBoard, player) => {
+    // available spots
+    const availSpots = gameBoard.findEmptyFields(newBoard);
+
+    // checks for the terminal states such as win, lose, and tie and returning a value accordingly
+    if (gameController.gameOver() === true && gameController.getWinnerSign() === 'X') {
+        return { score: -10 };
+    }
+    else if (gameController.gameOver() === true && gameController.getWinnerSign() === 'O') {
+        return { score: 10 };
+    }
+    else if (availSpots.length === 0) {
+        return { score: 0 };
+    }
+
+    // an array to collect all the objects
+    const moves = [];
+
+    // loop through available spots
+    for (let i = 0; i < availSpots.length; i++) {
+        // create an object for each and store the index of that spot that was stored as a number in the object's index key
+        const move = {};
+        move.index = newBoard[availSpots[i]];
+
+        // set the empty spot to the current player
+        newBoard[availSpots[i]] = player;
+
+        // if collect the score resulted from calling minimax on the opponent of the current player
+        if (player === 'O') {
+            const result = minimax(newBoard, 'X');
+            move.score = result.score;
+        }
+        else {
+            const result = minimax(newBoard, 'O');
+            move.score = result.score;
+        }
+
+        // reset the spot to empty
+        newBoard[availSpots[i]] = move.index;
+
+        // push the object to the array
+        moves.push(move);
+    }
+    
+    // if it is the computer's turn loop over the moves and choose the move with the highest score
+    let bestMove;
+
+    if (player === 'O'){
+        let bestScore = -10000;
+        for (let i = 0; i < moves.length; i++){
+        if (moves[i].score > bestScore){
+            bestScore = moves[i].score;
+            bestMove = i;
+        }
+        }
+    } else {
+
+    // else loop over the moves and choose the move with the lowest score
+        let bestScore = 10000;
+        for (let i = 0; i < moves.length; i++){
+        if (moves[i].score < bestScore){
+            bestScore = moves[i].score;
+            bestMove = i;
+        }
+        }
+    }
+
+    // return the chosen move (object) from the array to the higher depth
+    console.log(moves[bestMove]);
+    return moves[bestMove];
+}
