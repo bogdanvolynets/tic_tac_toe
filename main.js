@@ -83,7 +83,12 @@ var Player = function Player(sign) {
 
 var gameBoard = function () {
   // Create array that immitates tic tac toe board
-  var board = [0, 1, 2, 3, 4, 5, 6, 7, 8]; // Create new board with empty fields
+  var board = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+
+  var getBoard = function getBoard() {
+    return board;
+  }; // Create new board with empty fields
+
 
   var findEmptyFields = function findEmptyFields(board) {
     return board.filter(function (e) {
@@ -106,7 +111,7 @@ var gameBoard = function () {
   var getAiField = function getAiField() {
     var aiBoard = findEmptyFields(board);
     var randomNumber = Math.floor(Math.random() * aiBoard.length);
-    return aiBoard[randomNumber]; //return board[randomNumber] !== '' ? getAiField() : randomNumber;
+    return aiBoard[randomNumber];
   }; // clear board array
 
 
@@ -117,7 +122,7 @@ var gameBoard = function () {
   };
 
   return {
-    board: board,
+    getBoard: getBoard,
     setField: setField,
     getField: getField,
     findEmptyFields: findEmptyFields,
@@ -153,7 +158,7 @@ var displayController = function () {
   }); // check the gamemode, if it's AI mode - AI makes its move, 
 
   var determineMove = function determineMove() {
-    if (gameController.gameOver() === false && gameMode.getGameMode() === 'ai' && gameController.oddRound() === false) {
+    if (gameController.gameOver() === false && gameMode.getGameMode() === 'ai') {
       // set AI's sign and get empty field that will be choosen
       var aiSign = gameController.getSign();
       var aiField = gameBoard.getAiField(); // change DOM content and place new value into board array
@@ -163,9 +168,9 @@ var displayController = function () {
 
       checkForGameOver();
     } // minimax mode
-    else if (gameController.gameOver() === false && gameMode.getGameMode() === 'minimax' && gameController.oddRound() === false) {
+    else if (gameController.gameOver() === false && gameMode.getGameMode() === 'minimax') {
         var minimaxSign = gameController.getSign();
-        var minimaxField = minimax(gameBoard.board, minimaxSign);
+        var minimaxField = aiController.minimax(gameBoard.getBoard(), minimaxSign);
         cells[minimaxField.index].textContent = minimaxSign;
         gameBoard.setField(minimaxField.index, minimaxSign);
         checkForGameOver();
@@ -198,6 +203,7 @@ var displayController = function () {
   restartBtn.addEventListener('click', restartGame);
   return {
     setPlayersMoveText: setPlayersMoveText,
+    determineMove: determineMove,
     restartGame: restartGame
   };
 }();
@@ -211,7 +217,7 @@ var gameController = function () {
   var isWin = false;
 
   var getSign = function getSign() {
-    if (round % 2 === 0) {
+    if (oddRound() === false) {
       currentSign = playerTwo.sign;
       displayController.setPlayersMoveText(playerOne.sign);
     } else {
@@ -219,7 +225,7 @@ var gameController = function () {
       displayController.setPlayersMoveText(playerTwo.sign);
     }
 
-    round++;
+    setNextRound();
     return currentSign;
   };
 
@@ -230,6 +236,10 @@ var gameController = function () {
 
   var oddRound = function oddRound() {
     return round % 2 === 0 ? false : true;
+  };
+
+  var setNextRound = function setNextRound() {
+    return round++;
   };
 
   var setNewRound = function setNewRound() {
@@ -289,77 +299,106 @@ var gameMode = function () {
   };
 }();
 
-var minimax = function minimax(newBoard, player) {
-  // available spots
-  var availSpots = gameBoard.findEmptyFields(newBoard); // checks for the terminal states such as win, lose, and tie and returning a value accordingly
+var aiController = function () {
+  var xSign = document.querySelector('#xSign');
+  var oSign = document.querySelector('#oSign');
+  var huSign = 'X';
+  var aiSign = 'O';
+  var aiMove = false;
 
-  if (gameController.gameOver() === true && gameController.getWinnerSign() === 'X') {
-    return {
-      score: -10
-    };
-  } else if (gameController.gameOver() === true && gameController.getWinnerSign() === 'O') {
-    return {
-      score: 10
-    };
-  } else if (availSpots.length === 0) {
-    return {
-      score: 0
-    };
-  } // an array to collect all the objects
+  var aiMovesFirst = function aiMovesFirst() {
+    return aiMove;
+  };
+
+  xSign.addEventListener('click', function () {
+    huSign = 'X';
+    aiSign = 'O';
+    aiMove = false;
+  });
+  oSign.addEventListener('click', function () {
+    huSign = 'O';
+    aiSign = 'X';
+    aiMove = true;
+    displayController.determineMove();
+  });
+
+  var minimax = function minimax(newBoard, player) {
+    // available spots
+    var availSpots = gameBoard.findEmptyFields(newBoard); // checks for the terminal states such as win, lose, and tie and returning a value accordingly
+
+    if (gameController.gameOver() === true && gameController.getWinnerSign() === huSign) {
+      return {
+        score: -10
+      };
+    } else if (gameController.gameOver() === true && gameController.getWinnerSign() === aiSign) {
+      return {
+        score: 10
+      };
+    } else if (availSpots.length === 0) {
+      return {
+        score: 0
+      };
+    } // an array to collect all the objects
 
 
-  var moves = []; // loop through available spots
+    var moves = []; // loop through available spots
 
-  for (var i = 0; i < availSpots.length; i++) {
-    // create an object for each and store the index of that spot that was stored as a number in the object's index key
-    var move = {};
-    move.index = newBoard[availSpots[i]]; // set the empty spot to the current player
+    for (var i = 0; i < availSpots.length; i++) {
+      // create an object for each and store the index of that spot that was stored as a number in the object's index key
+      var move = {};
+      move.index = newBoard[availSpots[i]]; // set the empty spot to the current player
 
-    newBoard[availSpots[i]] = player; // if collect the score resulted from calling minimax on the opponent of the current player
+      newBoard[availSpots[i]] = player; // if collect the score resulted from calling minimax on the opponent of the current player
 
-    if (player === 'O') {
-      var result = minimax(newBoard, 'X');
-      move.score = result.score;
+      if (player === aiSign) {
+        var result = minimax(newBoard, huSign);
+        move.score = result.score;
+      } else {
+        var _result = minimax(newBoard, aiSign);
+
+        move.score = _result.score;
+      } // reset the spot to empty
+
+
+      newBoard[availSpots[i]] = move.index; // push the object to the array
+
+      moves.push(move);
+    } // if it is the computer's turn loop over the moves and choose the move with the highest score
+
+
+    var bestMove;
+
+    if (player === aiSign) {
+      var bestScore = -10000;
+
+      for (var _i = 0; _i < moves.length; _i++) {
+        if (moves[_i].score > bestScore) {
+          bestScore = moves[_i].score;
+          bestMove = _i;
+        }
+      }
     } else {
-      var _result = minimax(newBoard, 'O');
+      // else loop over the moves and choose the move with the lowest score
+      var _bestScore = 10000;
 
-      move.score = _result.score;
-    } // reset the spot to empty
-
-
-    newBoard[availSpots[i]] = move.index; // push the object to the array
-
-    moves.push(move);
-  } // if it is the computer's turn loop over the moves and choose the move with the highest score
-
-
-  var bestMove;
-
-  if (player === 'O') {
-    var bestScore = -10000;
-
-    for (var _i = 0; _i < moves.length; _i++) {
-      if (moves[_i].score > bestScore) {
-        bestScore = moves[_i].score;
-        bestMove = _i;
+      for (var _i2 = 0; _i2 < moves.length; _i2++) {
+        if (moves[_i2].score < _bestScore) {
+          _bestScore = moves[_i2].score;
+          bestMove = _i2;
+        }
       }
-    }
-  } else {
-    // else loop over the moves and choose the move with the lowest score
-    var _bestScore = 10000;
-
-    for (var _i2 = 0; _i2 < moves.length; _i2++) {
-      if (moves[_i2].score < _bestScore) {
-        _bestScore = moves[_i2].score;
-        bestMove = _i2;
-      }
-    }
-  } // return the chosen move (object) from the array to the higher depth
+    } // return the chosen move (object) from the array to the higher depth
 
 
-  console.log(moves[bestMove]);
-  return moves[bestMove];
-};
+    console.log(moves[bestMove]);
+    return moves[bestMove];
+  };
+
+  return {
+    aiMovesFirst: aiMovesFirst,
+    minimax: minimax
+  };
+}();
 }();
 /******/ })()
 ;
