@@ -25,8 +25,9 @@ const gameBoard = (() => {
     // Select random empty field and return its value
     // returned value is field index in original board
     const getAiField = () => {
+        const aiBoard = findEmptyFields();
         const randomNumber = Math.floor(
-            Math.random() * findEmptyFields().length
+            Math.random() * aiBoard.length
         );
         return aiBoard[randomNumber];
     }

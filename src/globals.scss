@@ -48,9 +48,44 @@ h1 {
     display: flex;
     justify-content: space-between;
     max-width: 480px;
-    margin: 20px auto 40px;
+    margin: 20px auto;
     &__text {
         font-size: 2.5rem;
         text-align: center;
+    }
+    figure {
+        cursor: pointer;
+    
+        .icon { 
+            zoom: .8;
+            transition: 0.3s;
+        }
+        .caption {
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        &:hover {
+            img {
+                transform: scale(1.1);
+            }
+        }
+    }
+}
+.signs { 
+    display: none;
+    justify-content: space-between;
+    align-items: baseline;
+    max-width: 200px;
+    font-size: 1.75rem;
+    margin: 0 auto;
+    &__active { 
+        display: flex;
+    }
+    .btn { 
+        font-size: 2.5rem;
+        background: transparent;
+        border: none;
+        text-shadow: 2px 1px 5px #fff; 
     }
 }
