@@ -64,11 +64,51 @@ h1 {
       -ms-flex-pack: justify;
           justify-content: space-between;
   max-width: 480px;
-  margin: 20px auto 40px;
+  margin: 20px auto;
 }
 .gamemode__text {
   font-size: 2.5rem;
   text-align: center;
+}
+.gamemode figure {
+  cursor: pointer;
+}
+.gamemode figure .icon {
+  zoom: 0.8;
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+}
+.gamemode figure .caption {
+  font-size: 1.5rem;
+  text-align: center;
+}
+.gamemode figure:hover img {
+  -webkit-transform: scale(1.1);
+          transform: scale(1.1);
+}
+
+.signs {
+  display: none;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  -webkit-box-align: baseline;
+      -ms-flex-align: baseline;
+          align-items: baseline;
+  max-width: 200px;
+  font-size: 1.75rem;
+  margin: 0 auto;
+}
+.signs__active {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+.signs .btn {
+  font-size: 2.5rem;
+  background: transparent;
+  border: none;
+  text-shadow: 2px 1px 5px #fff;
 }
 
 .game-board {

@@ -87,10 +87,10 @@ var gameBoard = function () {
 
   var getBoard = function getBoard() {
     return board;
-  }; // Create new board with empty fields
+  }; // Create board with empty fields only
 
 
-  var findEmptyFields = function findEmptyFields(board) {
+  var findEmptyFields = function findEmptyFields() {
     return board.filter(function (e) {
       return e !== 'O' && e !== 'X';
     });
@@ -109,7 +109,7 @@ var gameBoard = function () {
 
 
   var getAiField = function getAiField() {
-    var aiBoard = findEmptyFields(board);
+    var aiBoard = findEmptyFields();
     var randomNumber = Math.floor(Math.random() * aiBoard.length);
     return aiBoard[randomNumber];
   }; // clear board array
@@ -158,7 +158,7 @@ var displayController = function () {
   }); // check the gamemode, if it's AI mode - AI makes its move, 
 
   var determineMove = function determineMove() {
-    if (gameController.gameOver() === false && gameMode.getGameMode() === 'ai') {
+    if (gameController.gameOver() === false && gameMode.getGameMode() === 'ai' || gameMode.getGameMode() === 'minimax' && gameBoard.findEmptyFields().length === 9) {
       // set AI's sign and get empty field that will be choosen
       var aiSign = gameController.getSign();
       var aiField = gameBoard.getAiField(); // change DOM content and place new value into board array
@@ -197,13 +197,17 @@ var displayController = function () {
 
     for (var i = 0; i < cells.length; i++) {
       cells[i].textContent = '';
+    } // if it's AI mode and AI plays X - AI makes its move
+
+
+    if (aiController.aiMovesFirst()) {
+      determineMove();
     }
   };
 
   restartBtn.addEventListener('click', restartGame);
   return {
     setPlayersMoveText: setPlayersMoveText,
-    determineMove: determineMove,
     restartGame: restartGame
   };
 }();
@@ -217,7 +221,7 @@ var gameController = function () {
   var isWin = false;
 
   var getSign = function getSign() {
-    if (oddRound() === false) {
+    if (round % 2 === 0) {
       currentSign = playerTwo.sign;
       displayController.setPlayersMoveText(playerOne.sign);
     } else {
@@ -231,11 +235,6 @@ var gameController = function () {
 
   var getWinnerSign = function getWinnerSign() {
     return winnerSign;
-  }; // chick if round number is odd
-
-
-  var oddRound = function oddRound() {
-    return round % 2 === 0 ? false : true;
   };
 
   var setNextRound = function setNextRound() {
@@ -245,6 +244,7 @@ var gameController = function () {
   var setNewRound = function setNewRound() {
     return round = 1;
   }; // we take 3 board fields if each field has same value then game was won
+  // we also set winners sign
 
 
   var checkWin = function checkWin(cell1, cell2, cell3) {
@@ -272,7 +272,6 @@ var gameController = function () {
   return {
     getSign: getSign,
     getWinnerSign: getWinnerSign,
-    oddRound: oddRound,
     setNewRound: setNewRound,
     gameOver: gameOver
   };
@@ -301,7 +300,8 @@ var gameMode = function () {
 
 var aiController = function () {
   var xSign = document.querySelector('#xSign');
-  var oSign = document.querySelector('#oSign');
+  var oSign = document.querySelector('#oSign'); // set default signs
+
   var huSign = 'X';
   var aiSign = 'O';
   var aiMove = false;
@@ -314,17 +314,18 @@ var aiController = function () {
     huSign = 'X';
     aiSign = 'O';
     aiMove = false;
+    displayController.restartGame();
   });
   oSign.addEventListener('click', function () {
     huSign = 'O';
     aiSign = 'X';
     aiMove = true;
-    displayController.determineMove();
+    displayController.restartGame();
   });
 
   var minimax = function minimax(newBoard, player) {
     // available spots
-    var availSpots = gameBoard.findEmptyFields(newBoard); // checks for the terminal states such as win, lose, and tie and returning a value accordingly
+    var availSpots = gameBoard.findEmptyFields(); // checks for the terminal states such as win, lose, and tie and returning a value accordingly
 
     if (gameController.gameOver() === true && gameController.getWinnerSign() === huSign) {
       return {
