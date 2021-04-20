@@ -280,12 +280,21 @@ var gameController = function () {
 var gameMode = function () {
   var gameModes = _toConsumableArray(document.querySelectorAll('#gameMode'));
 
+  var signsDOM = document.querySelector('#signs');
   var mode = 'human'; // on button click set gamemode to the selected one
+  // also display sign selection if gamemode is ai
 
   gameModes.forEach(function (e) {
     return e.addEventListener('click', function () {
-      displayController.restartGame();
       mode = e.getAttribute('data-mode');
+
+      if (mode === 'ai' || mode === 'minimax') {
+        signsDOM.classList.add('signs__active');
+      } else {
+        signsDOM.classList.remove('signs__active');
+      }
+
+      displayController.restartGame();
     });
   });
 
