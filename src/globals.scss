@@ -17,7 +17,7 @@ h1 {
 .players-turn {  
     font-size: 2.5rem;
     text-align: center;
-    margin-top: 20px;
+    margin-top: 30px;
 }
 .btn { 
     display: block; 
@@ -26,6 +26,7 @@ h1 {
     font-weight: 700;  
     outline: 0; 
     cursor: pointer; 
+    transition: 0.2s ease-in-out;
     &__player {
         font-size: 2rem;
         text-shadow: 2px 1px 5px #fff; 
@@ -42,32 +43,40 @@ h1 {
         border: 2px solid #000; 
         border-radius: 10px; 
         background: #fff;
+        &:hover {
+            box-shadow: 4px 3px 8px 0px #ffffff85;
+        }
     }
 }
 .gamemode {
     display: flex;
     justify-content: space-between;
     max-width: 480px;
-    margin: 20px auto;
+    margin: 20px auto 10px;
     &__text {
         font-size: 2.5rem;
         text-align: center;
+        margin-top: 10px;
     }
     figure {
         cursor: pointer;
     
         .icon { 
             zoom: .8;
-            transition: 0.3s;
+            transition: 0.3s ease-out;
         }
         .caption {
             font-size: 1.5rem;
             text-align: center;
+            transition: 0.3s ease-out;
         }
 
         &:hover {
-            img {
+            .icon {
                 transform: scale(1.1);
+            }
+            .caption {
+                text-shadow: 2px 1px 5px #fff;
             }
         }
     }
@@ -78,14 +87,37 @@ h1 {
     align-items: baseline;
     max-width: 200px;
     font-size: 1.75rem;
-    margin: 0 auto;
+    margin: 0 auto 30px;
+    opacity: 0;
     &__active { 
         display: flex;
+        opacity: 1;
+        animation: fadeInFromNone 0.3s ease-out;
     }
     .btn { 
         font-size: 2.5rem;
         background: transparent;
         border: none;
         text-shadow: 2px 1px 5px #fff; 
+        &:hover { 
+            transform: scale(1.2);
+        }
+    }
+}
+
+@keyframes fadeInFromNone {
+    0% {
+        display: none;
+        opacity: 0;
+    }
+
+    1% {
+        display: block;
+        opacity: 0;
+    }
+
+    100% {
+        display: block;
+        opacity: 1;
     }
 }

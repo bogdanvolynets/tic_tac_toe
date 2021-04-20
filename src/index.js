@@ -75,8 +75,8 @@ const displayController = (() => {
 
     // check the gamemode, if it's AI mode - AI makes its move, 
     const determineMove = () => {
-        if (gameController.gameOver() === false && gameMode.getGameMode() === 'ai' 
-        || gameMode.getGameMode() === 'minimax' && gameBoard.findEmptyFields().length === 9) { 
+        if ((gameController.gameOver() === false && gameMode.getGameMode() === 'ai') 
+        || (gameMode.getGameMode() === 'minimax' && gameBoard.findEmptyFields().length === 9)) { 
 
             // set AI's sign and get empty field that will be choosen
             const aiSign = gameController.getSign(); 
@@ -197,12 +197,19 @@ const gameController = (() => {
 
 const gameMode = (() => {
     const gameModes = [...document.querySelectorAll('#gameMode')];
+    const signsDOM = document.querySelector('#signs');
     let mode = 'human';
     
     // on button click set gamemode to the selected one
+    // also display sign selection if gamemode is ai
     gameModes.forEach(e => e.addEventListener('click', () => {
-        displayController.restartGame();
         mode = e.getAttribute('data-mode');
+        if (mode === 'ai' || mode === 'minimax') {
+            signsDOM.classList.add('signs__active');
+        } else {
+            signsDOM.classList.remove('signs__active');
+        }
+        displayController.restartGame();
     }));
 
     const getGameMode = () => mode;
